@@ -1,0 +1,9 @@
+total 152
+-rwxr-xr-x 1 drakengard drakengard 41480 مئی   14 15:20 gbsh
+-rw-r--r-- 1 drakengard drakengard  7323 مئی   14 15:20 gbsh.cpp
+-rw-r--r-- 1 drakengard drakengard 61392 مئی   14 15:20 gbsh.o
+drwxr-xr-x 2 drakengard drakengard  4096 مئی   12 17:59 i180449_B
+-rw-r--r-- 1 drakengard drakengard 26564 مئی   12 17:59 i180449_B.zip
+-rw-r--r-- 1 drakengard drakengard   153 مئی   10 23:54 Makefile
+-rw-r--r-- 1 drakengard drakengard     4 مئی   11 03:16 wc-test.cnt
+-rw-r--r-- 1 drakengard drakengard     0 مئی   14 15:21 wc-test.txt

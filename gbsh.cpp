@@ -21,31 +21,6 @@ void handler(int sigNum) {
 	signal(SIGINT, handler);
 }
 
-int
-spawn_proc (int in, int out, char* cmd)
-{
-  pid_t pid;
-
-  if ((pid = fork ()) == 0)
-    {
-      if (in != 0)
-        {
-          dup2 (in, 0);
-          close (in);
-        }
-
-      if (out != 1)
-        {
-          dup2 (out, 1);
-          close (out);
-        }
-
-      return execlp(cmd,cmd,NULL);
-    }
-
-  return pid;
-}
-
 int main(int argc, char *argv[]) {
 	
 	system("clear");
@@ -93,7 +68,7 @@ int main(int argc, char *argv[]) {
     	    		cmd.push_back(intermediate); 
     		} 
 		
-		if(condition == false) {
+		if(condition == false) { //Output and Input Redirection.
 		if(cmd.size() > 2 && (cmd[1] == ">" || cmd[2] == ">" || cmd[3] == ">" || cmd[1] == "<" || cmd[2] == "<" || cmd[3] == "<")) {
 			if(cmd[1] == ">" || cmd[2] == ">" || cmd[3] == ">") {
 				char* command,*fileName,*arg1,*arg2;
@@ -224,7 +199,15 @@ int main(int argc, char *argv[]) {
 			printf("%s \n",getenv("PWD"));
 		}
 		else if(cmd[0] == "clear") {
-			system("clear");
+			pid = fork();
+			if(pid == 0) {
+				execlp("clear","clear",NULL);
+				exit(0);
+			}
+			else if(pid > 0) {
+				wait(NULL);
+			}
+			
 		}
 		else if(cmd[0] == "ls") {
 			DIR *dir;
@@ -270,21 +253,34 @@ int main(int argc, char *argv[]) {
 		else {
 			for(int i = 0; i<cmd.size(); i++) {
 				cout << cmd[i] << endl;
-			}	
+			}
+			
+			bool condition = false;
+			char* command = new char[cmd[0].length() + 1];
+			strcpy(command,cmd[0].c_str());
+		
+			int x = 0;
+			while(command[x] != '\0') {
+				if(command[x] == '&')
+					condition = true;
+				x++;
+			}
+
+			char* token = strtok(command,"&");	
 			
 			pid = fork();
-			const char* command = cmd[0].c_str();
 			if(pid == 0) {
 				execlp(command,command,NULL);
 				exit(0);
 			}
 			else if(pid > 0) {
+				if(condition == false) // Check for ampersand.
 				wait(NULL);
 			}
 		}
 		}
 
-		else {
+		else { // Dynamic chaining of pipes.
 
 			vector<string> commands;
 			
@@ -297,9 +293,9 @@ int main(int argc, char *argv[]) {
 			
   			pid_t pid;
 			char* command;
-  			int in, fd [2];
+  			int input, fd[2];
 
-  			in = 0;
+  			input = 0;
 			pid = fork();
 			if(pid == 0) {
   			for (int i = 0; i < pipeSize; ++i){
@@ -307,16 +303,32 @@ int main(int argc, char *argv[]) {
 
 				command = new char[commands[i].length() + 1];
 				strcpy(command,commands[i].c_str());			
+				
+				pid = fork();
 
-	      			spawn_proc (in, fd [1], command);
-		
-      				close (fd [1]);
+  				if (pid == 0){
+      					if (input != 0){
+        	  				dup2 (input, 0);
+        	  				close (input);
+        				}
 
-      				in = fd [0];
+      					if (fd[1] != 1){
+          					dup2 (fd[1], 1);
+          					close (fd[1]);
+        				}
+
+      					execlp(command,command,NULL);
+    				}
+				else if(pid > 0) {
+					wait(NULL);
+      					close (fd[1]);
+
+      					input = fd[0];
+				}
     			}
   
-  			if (in != 0)
-    			dup2 (in, 0);
+  			if (input != 0)
+    			dup2 (input, 0);
 
 			command = new char[commands[pipeSize].length() + 1];
 			strcpy(command,commands[pipeSize].c_str());
